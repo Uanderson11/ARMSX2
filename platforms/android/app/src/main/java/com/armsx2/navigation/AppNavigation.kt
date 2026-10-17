@@ -14,10 +14,13 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import com.armsx2.ui.achievements.AchievementsScreen
 import com.armsx2.ui.arcade.ArcadeScreen
 import com.armsx2.ui.bios.BiosManagerScreen
@@ -83,10 +86,21 @@ fun AppNavigation() {
             label = "app-route",
         ) { destination ->
             when (destination) {
-                AppRoute.Home -> HomeScreen(
-                    onOpenMenu = { UiNavigator.drawerOpen.value = true },
-                    onOpenGameSettings = { UiNavigator.navigate(AppRoute.Settings(game = it)) },
-                )
+                AppRoute.Home -> {
+                    // Meu app: barra de navegacao embaixo da biblioteca, so em retrato
+                    // (em paisagem a altura da tela vai toda para as capas).
+                    val portrait = LocalConfiguration.current.orientation ==
+                        android.content.res.Configuration.ORIENTATION_PORTRAIT
+                    Column(Modifier.fillMaxSize()) {
+                        Box(Modifier.weight(1f).fillMaxWidth()) {
+                            HomeScreen(
+                                onOpenMenu = { UiNavigator.drawerOpen.value = true },
+                                onOpenGameSettings = { UiNavigator.navigate(AppRoute.Settings(game = it)) },
+                            )
+                        }
+                        if (portrait) LibraryBottomBar()
+                    }
+                }
                 is AppRoute.Settings -> SettingsScreen(
                     initialCategory = destination.category,
                     game = destination.game,
