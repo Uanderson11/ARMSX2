@@ -1691,22 +1691,24 @@ data class TouchLayout(val buttons: List<TouchButtonCfg>) {
         fun default(): TouchLayout = TouchLayout(
             buttons = listOf(
                 // DPad cluster — lower left of screen, above L-stick room
-                TouchButtonCfg(TouchButtonId.DPAD,     0.10f, 0.55f, 150f),
+                TouchButtonCfg(TouchButtonId.DPAD,     0.10f, 0.42f, 150f),
                 // Face button diamond — lower right
-                TouchButtonCfg(TouchButtonId.TRIANGLE, 0.86f, 0.45f, 58f),
-                TouchButtonCfg(TouchButtonId.SQUARE,   0.80f, 0.55f, 58f),
-                TouchButtonCfg(TouchButtonId.CIRCLE,   0.92f, 0.55f, 58f),
-                TouchButtonCfg(TouchButtonId.CROSS,    0.86f, 0.65f, 58f),
+                TouchButtonCfg(TouchButtonId.TRIANGLE, 0.86f, 0.30f, 58f),
+                TouchButtonCfg(TouchButtonId.SQUARE,   0.80f, 0.42f, 58f),
+                TouchButtonCfg(TouchButtonId.CIRCLE,   0.92f, 0.42f, 58f),
+                TouchButtonCfg(TouchButtonId.CROSS,    0.86f, 0.54f, 58f),
                 // Shoulders stacked vertically on each side: L2 / R2 on
                 // top (further trigger), L1 / R1 directly below them.
                 // Gap is ~16% of screen height — on a 390dp landscape
                 // height that's 62dp center-to-center, ~6dp visible gap
                 // between the 56dp buttons. Tight enough to read as a
                 // pair without overlapping.
-                TouchButtonCfg(TouchButtonId.L2,       0.08f, 0.10f, 56f),
-                TouchButtonCfg(TouchButtonId.L1,       0.08f, 0.23f, 56f),
-                TouchButtonCfg(TouchButtonId.R2,       0.92f, 0.10f, 56f),
-                TouchButtonCfg(TouchButtonId.R1,       0.92f, 0.23f, 56f),
+                // Meu app: L1/L2 e R1/R2 nos cantos de BAIXO (pedido do Uanderson), com D-pad e
+                // botoes de acao subidos para abrir espaco. L1/R1 em cima, L2/R2 junto da borda.
+                TouchButtonCfg(TouchButtonId.L1,       0.07f, 0.78f, 50f),
+                TouchButtonCfg(TouchButtonId.L2,       0.07f, 0.92f, 50f),
+                TouchButtonCfg(TouchButtonId.R1,       0.93f, 0.78f, 50f),
+                TouchButtonCfg(TouchButtonId.R2,       0.93f, 0.92f, 50f),
                 // Start / Select centered at the bottom
                 TouchButtonCfg(TouchButtonId.SELECT,   0.45f, 0.92f, 48f),
                 TouchButtonCfg(TouchButtonId.START,    0.55f, 0.92f, 48f),
@@ -1732,7 +1734,7 @@ data class TouchLayout(val buttons: List<TouchButtonCfg>) {
                 // in the middle of the screen. Visibility is owned by the Pad-settings toggle, not
                 // this flag, so it is `enabled` here — see the ANALOG_EXTRA gate in the overlay's
                 // widget loop.
-                TouchButtonCfg(TouchButtonId.ANALOG_EXTRA, 0.10f, 0.34f, 48f),
+                TouchButtonCfg(TouchButtonId.ANALOG_EXTRA, 0.10f, 0.12f, 48f),
                 // GunCon 2 buttons: a row across the top, between the shoulders and clear of the
                 // pause button, and above the picture on a wide screen, since the picture is what
                 // you aim at. Only on screen while a gun is attached (the GUN gate in the overlay's
