@@ -24,6 +24,8 @@ import java.util.zip.ZipInputStream
 object ControllerSkinStore {
 
     private const val KEY_ACTIVE = "skin.active"
+    /** Meu app: skin usada quando o usuario nunca escolheu outra. */
+    const val DEFAULT_SKIN = "builtin:retroplayer"
 
     /** Per-game skin override: `skin.active.game.<serial>`. Mirrors how the touch
      *  LAYOUT already goes per-serial (see TouchControls.applyForSerial) — the global
@@ -62,8 +64,8 @@ object ControllerSkinStore {
         val eff = serial?.takeIf { it.isNotEmpty() }
         val raw = if (eff != null)
             MainActivityRuntime.prefs.getString(KEY_ACTIVE_GAME_PREFIX + eff, null)
-                ?: MainActivityRuntime.prefs.getString(KEY_ACTIVE, null)
-        else MainActivityRuntime.prefs.getString(KEY_ACTIVE, null)
+                ?: MainActivityRuntime.prefs.getString(KEY_ACTIVE, DEFAULT_SKIN)
+        else MainActivityRuntime.prefs.getString(KEY_ACTIVE, DEFAULT_SKIN)
         activeSerial.value = eff
         val resolved = idOrNull(raw)?.takeIf { builtinFor(it) != null || File(root(ctx), it).isDirectory }
         if (activeSkinId.value != resolved) {
@@ -85,7 +87,7 @@ object ControllerSkinStore {
         val eff = serial?.takeIf { it.isNotEmpty() }
         val raw = if (eff != null && hasGameOverride(eff))
             MainActivityRuntime.prefs.getString(KEY_ACTIVE_GAME_PREFIX + eff, null)
-        else MainActivityRuntime.prefs.getString(KEY_ACTIVE, null)
+        else MainActivityRuntime.prefs.getString(KEY_ACTIVE, DEFAULT_SKIN)
         return idOrNull(raw)
     }
 
@@ -161,7 +163,7 @@ object ControllerSkinStore {
 
     private fun ensureLoaded(ctx: Context) {
         if (loaded) return
-        val saved = MainActivityRuntime.prefs.getString(KEY_ACTIVE, null)
+        val saved = MainActivityRuntime.prefs.getString(KEY_ACTIVE, DEFAULT_SKIN)
         activeSkinId.value = saved?.takeIf {
             builtinFor(it) != null || File(root(ctx), it).isDirectory
         }
@@ -181,6 +183,8 @@ object ControllerSkinStore {
      *  never collide with an imported skin's folder name. */
     data class BuiltinSkin(val id: String, val name: String, val assetDir: String)
     val BUILTIN: List<BuiltinSkin> = listOf(
+        // Meu app: skin do layout novo (botoes redondos translucidos), padrao do app.
+        BuiltinSkin(DEFAULT_SKIN, "Retro Player", "controller_skins/retroplayer"),
         BuiltinSkin("builtin:nethersx2", "NetherSX2", "controller_skins/nethersx2"),
         BuiltinSkin("builtin:nethersx2_old", "NetherSX2 Old", "controller_skins/nethersx2_old"),
     )
@@ -208,7 +212,8 @@ object ControllerSkinStore {
         val eff = serial?.takeIf { it.isNotEmpty() }
         MainActivityRuntime.prefs.edit().apply {
             if (eff != null) putString(KEY_ACTIVE_GAME_PREFIX + eff, id ?: NONE)
-            else if (id == null) remove(KEY_ACTIVE)
+            // Meu app: "nenhuma skin" fica gravado, senao voltaria para a skin padrao.
+            else if (id == null) putString(KEY_ACTIVE, NONE)
             else putString(KEY_ACTIVE, id)
         }.apply()
         // Re-resolve rather than assigning id outright: editing the GLOBAL skin while a

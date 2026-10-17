@@ -11,6 +11,9 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -753,13 +756,12 @@ private fun SessionPane(state: EmulationMenuUiState, viewModel: EmulationMenuVie
                 .padding(horizontal = 13.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
+            // Meu app: miniaturas dos estados salvos no lugar dos numeros.
             repeat(10) { slot ->
-                OptionChip(
-                    // A dot marks a slot that holds something, so the row shows what is used
-                    // without having to select each one to find out.
-                    label = if (slotStamps.containsKey(slot)) "${slot + 1} •" else "${slot + 1}",
+                SlotThumb(
+                    slot = slot,
+                    occupied = slotStamps.containsKey(slot),
                     selected = slot == state.saveSlot,
-                    controllerId = "pause.saveslot.$slot",
                     onClick = { viewModel.setSaveSlot(slot) },
                 )
             }
@@ -774,6 +776,20 @@ private fun SessionPane(state: EmulationMenuUiState, viewModel: EmulationMenuVie
             }
             CompactAction(str("touch.stateAction.load"), "↧", Modifier.weight(1f)) {
                 com.armsx2.ui.WindowImpl.openInGameScreen(com.armsx2.ui.InGameScreen.LoadState)
+            }
+        }
+    }
+    // Meu app: resolucao a um toque, sem sair do jogo.
+    SectionCard("Resolução") {
+        val current = state.settings.output.upscaleFloat
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf(1f to "1x nativa", 2f to "2x ~720p", 3f to "3x ~1080p", 4f to "4x").forEach { (v, label) ->
+                OptionChip(
+                    label = label,
+                    selected = kotlin.math.abs(current - v) < 0.01f,
+                    controllerId = "pause.upscale.$v",
+                    onClick = { viewModel.setUpscale(v) },
+                )
             }
         }
     }
@@ -1983,5 +1999,63 @@ private fun Modifier.bleedHorizontal(edge: androidx.compose.ui.unit.Dp): Modifie
     )
     layout(constraints.maxWidth, placeable.height) {
         placeable.placeRelative(-edgePx, 0)
+    }
+}
+
+/** Meu app: miniatura de um estado salvo no menu rapido. */
+@Composable
+private fun SlotThumb(slot: Int, occupied: Boolean, selected: Boolean, onClick: () -> Unit) {
+    val image by androidx.compose.runtime.produceState<android.graphics.Bitmap?>(initialValue = null, slot, occupied) {
+        value = if (!occupied) null else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            runCatching {
+                val bytes = kr.co.iefriends.pcsx2.NativeApp.getImageSlot(slot) ?: return@runCatching null
+                if (bytes.isEmpty()) null else android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            }.getOrNull()
+        }
+    }
+    val shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+    Column(
+        Modifier
+            .width(92.dp)
+            .controllerFocusable("pause.saveslot.$slot", shape, onConfirm = onClick)
+            .clip(shape)
+            .clickable(onClick = onClick),
+    ) {
+        androidx.compose.foundation.layout.Box(
+            Modifier
+                .fillMaxWidth()
+                .aspectRatio(4f / 3f)
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .border(
+                    if (selected) 2.dp else 1.dp,
+                    if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                    shape,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            val bmp = image
+            if (bmp != null) {
+                androidx.compose.foundation.Image(
+                    bitmap = bmp.asImageBitmap(),
+                    contentDescription = "Slot ${slot + 1}",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                )
+            } else {
+                Text(
+                    if (occupied) "${slot + 1}" else "+",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
+        }
+        Text(
+            if (occupied) "Slot ${slot + 1}" else "Slot ${slot + 1} · vazio",
+            style = MaterialTheme.typography.labelSmall,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp),
+            maxLines = 1,
+        )
     }
 }
