@@ -45,8 +45,31 @@ jobs:
       - name: Install Rust Android target
         run: rustup target add aarch64-linux-android
 
+      # Assinatura fixa: sem ela cada build sai com uma chave aleatoria do runner e o Android
+      # recusa instalar por cima da versao anterior. A chave fica nos secrets do repositorio.
+      - name: Preparar assinatura fixa
+        env:
+          RP_KEYSTORE_B64: ${{ secrets.RP_KEYSTORE_B64 }}
+          RP_KEYSTORE_PASSWORD: ${{ secrets.RP_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$RP_KEYSTORE_B64" ] || [ -z "$RP_KEYSTORE_PASSWORD" ]; then
+            echo "::warning::Secrets RP_KEYSTORE_B64/RP_KEYSTORE_PASSWORD ausentes: o APK sai com chave temporaria e nao atualiza por cima."
+            exit 0
+          fi
+          echo "$RP_KEYSTORE_B64" | base64 -d > retroplayer.jks
+          {
+            echo "storeFile=retroplayer.jks"
+            echo "storePassword=$RP_KEYSTORE_PASSWORD"
+            echo "keyAlias=retroplayer"
+            echo "keyPassword=$RP_KEYSTORE_PASSWORD"
+          } > armsx2_keystore.properties
+
       - name: Build APK (github release)
-        run: ./gradlew :app:assembleGithubRelease --stacktrace
+        # versionCode sobe a cada build, para o Android aceitar como atualizacao.
+        run: >-
+          ./gradlew :app:assembleGithubRelease --stacktrace
+          -Parmsx2.versionCode=$((1000 + ${{ github.run_number }}))
+          -Parmsx2.versionName=0.1.${{ github.run_number }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
