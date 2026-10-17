@@ -116,17 +116,19 @@ fun ArmsBackdrop(
 @Composable
 fun ArmsLogo(modifier: Modifier = Modifier, showWordmark: Boolean = true, iconSize: Dp = 42.dp) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        // The ARMSX2 tower mark (bagas's logo), circle-cropped so its dark square
-        // corners don't show — matches the round hero render.
+        // Meu app: icone do Retro Player (o mesmo da tela inicial) sobre o fundo escuro dele.
         Image(
-            painter = painterResource(id = R.drawable.savetowerforeground),
-            contentDescription = "ARMSX2",
-            modifier = Modifier.size(iconSize).clip(CircleShape),
+            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+            contentDescription = "Retro Player",
+            modifier = Modifier
+                .size(iconSize)
+                .clip(CircleShape)
+                .background(androidx.compose.ui.graphics.Color(0xFF0E1014)),
         )
         if (showWordmark) {
             Spacer(Modifier.width(12.dp))
             Text(
-                text = "ARMSX2",
+                text = "Retro Player",
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,

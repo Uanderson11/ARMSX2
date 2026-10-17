@@ -219,24 +219,8 @@ private fun DrawerContent(selected: AppRoute, onNavigate: (AppRoute) -> Unit, on
         // logo in PCSX2x6's red.
         DrawerItem("arcade.title", "👾", AppRoute.Arcade, glyphIcon = com.armsx2.R.drawable.ic_arcade),
     )
-    // Link-out rows: they reuse the existing onAction path (like Boot BIOS) rather than a
-    // destination, so they leave the drawer via startActivity and close it behind them.
-    val about = listOf(
-        DrawerItem("about.discord", "💬", iconRes = com.armsx2.R.drawable.ic_discord,
-            onAction = { openExternalUrl(context, DiscordUrl); onDismiss() }),
-        DrawerItem("about.github", "🐙", iconRes = com.armsx2.R.drawable.ic_github,
-            onAction = { openExternalUrl(context, GithubUrl); onDismiss() }),
-        DrawerItem("about.website", "🌐", onAction = { openExternalUrl(context, WebsiteUrl); onDismiss() }),
-        // In-app release notes. A destination rather than a link-out because the point is to read
-        // what changed without leaving for a browser — the GitHub row above is still there for
-        // anyone who wants the repo itself.
-        DrawerItem("news.title", "📰", AppRoute.News),
-        DrawerItem("friends.title", "👥", AppRoute.Friends, friendsBadge = true),
-        DrawerItem("remoteplay.title", "📡", AppRoute.RemotePlay),
-        // About left the settings tab strip: it is a read-only page, not a setting, and it sat in
-        // the tab row costing a slot on every settings visit.
-        DrawerItem("about.title", "ℹ️", AppRoute.About),
-    )
+    // Meu app: a secao SOBRE (Discord, GitHub, site, novidades, amigos e jogo remoto do ARMSX2)
+    // saiu do menu; o "Sobre" do app virou um link pequeno no rodape, abaixo de Sair.
     // Exit gets its own trailing section. It was briefly filed under ABOUT, next to the Discord and
     // GitHub links, where nobody would think to look for "quit".
     val session = listOf(
@@ -268,11 +252,17 @@ private fun DrawerContent(selected: AppRoute, onNavigate: (AppRoute) -> Unit, on
         Spacer(Modifier.height(14.dp))
         HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.45f))
         Spacer(Modifier.height(14.dp))
-        DrawerSection(str("about.section.header"), about, selected, onNavigate)
-        Spacer(Modifier.height(14.dp))
-        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.45f))
-        Spacer(Modifier.height(14.dp))
         DrawerSection(str("games.section.app"), session, selected, onNavigate)
+        Spacer(Modifier.height(18.dp))
+        Text(
+            "Sobre",
+            fontSize = 10.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            modifier = Modifier
+                .padding(horizontal = 8.dp)
+                .clickable { onNavigate(AppRoute.About); onDismiss() }
+                .padding(vertical = 6.dp),
+        )
     }
 }
 
