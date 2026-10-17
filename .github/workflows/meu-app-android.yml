@@ -56,11 +56,12 @@ jobs:
             echo "::warning::Secrets RP_KEYSTORE_B64/RP_KEYSTORE_PASSWORD ausentes: o APK sai com chave temporaria e nao atualiza por cima."
             exit 0
           fi
-          # Tolera espacos/quebras de linha que entram ao colar o secret.
+          # Tolera espacos/quebras de linha que entram ao colar os secrets.
+          RP_KEYSTORE_PASSWORD="$(printf '%s' "$RP_KEYSTORE_PASSWORD" | tr -d ' \r\n\t')"
           printf '%s' "$RP_KEYSTORE_B64" | tr -d ' \r\n\t' | base64 -d > retroplayer.jks || {
             echo "::error::RP_KEYSTORE_B64 nao e um base64 valido (colado pela metade ou com caracteres a mais)."; exit 1; }
           keytool -list -keystore retroplayer.jks -storetype PKCS12 -storepass "$RP_KEYSTORE_PASSWORD" >/dev/null || {
-            echo "::error::A chave decodificou, mas a senha RP_KEYSTORE_PASSWORD nao abre ela."; exit 1; }
+            echo "::error::A chave decodificou, mas a senha RP_KEYSTORE_PASSWORD nao abre ela (a senha colada tem ${#RP_KEYSTORE_PASSWORD} caracteres; a certa tem 24)."; exit 1; }
           {
             echo "storeFile=retroplayer.jks"
             echo "storePassword=$RP_KEYSTORE_PASSWORD"
