@@ -1,6 +1,9 @@
 package com.armsx2.ui.about
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -44,6 +47,8 @@ import com.armsx2.ui.settings.LocalSettingsScrollState
 import com.armsx2.ui.settings.controllerFocusable
 
 private const val RepositoryUrl = "https://github.com/ARMSX2/ARMSX2"
+// Meu app: onde fica o codigo-fonte desta versao (exigencia da GPL-3).
+private const val SourceUrl = "https://github.com/Uanderson11/ARMSX2/tree/meu-app"
 private const val Pcsx2RepositoryUrl = "https://github.com/PCSX2/pcsx2"
 
 @Composable
@@ -69,12 +74,20 @@ fun AboutScreen(onBack: () -> Unit, viewModel: AboutViewModel = viewModel()) {
                     val overview: @Composable (Modifier) -> Unit = { panelModifier ->
                         GlassPanel(panelModifier) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                ArmsLogo(showWordmark = true)
-                                Spacer(Modifier.height(12.dp))
+                                // Meu app: icone e nome do Retro Player no lugar do logo do ARMSX2.
+                                androidx.compose.foundation.Image(
+                                    painter = androidx.compose.ui.res.painterResource(com.armsx2.R.drawable.ic_launcher_foreground),
+                                    contentDescription = "Retro Player",
+                                    modifier = Modifier
+                                        .size(132.dp)
+                                        .clip(RoundedCornerShape(30.dp))
+                                        .background(androidx.compose.ui.graphics.Color(0xFF0E1014)),
+                                )
+                                Spacer(Modifier.height(10.dp))
                                 Text(
-                                    str("about.tagline"),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    "Retro Player",
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
                                 )
                             }
                         }
@@ -119,113 +132,38 @@ fun AboutScreen(onBack: () -> Unit, viewModel: AboutViewModel = viewModel()) {
                             }
                             hardware(Modifier.fillMaxWidth())
                         }
-                        if (compact) {
-                            ProjectCard(
-                                title = str("about.repository.title"),
-                                repository = "ARMSX2/ARMSX2",
-                                description = str("about.repository.description"),
-                                glyph = "⌘",
-                                controllerId = "about.repository",
-                                onOpen = { uriHandler.openUri(RepositoryUrl) },
+                        // Meu app: creditos e avisos de licenca num rodape minusculo. A GPL-3 exige que
+                        // o app mostre copyright, ausencia de garantia e onde ler a licenca (secao 5d),
+                        // entao eles ficam aqui, discretos, mas presentes e tocaveis.
+                        Spacer(Modifier.height(28.dp))
+                        val tiny = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
+                        Column(
+                            Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Text(
+                                "Baseado em PCSX2 e ARMSX2. $ArmsCopyright. Sem garantia. Licença GPL-3.",
+                                fontSize = 9.sp, color = tiny, lineHeight = 11.sp,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                             )
-                            ProjectCard(
-                                title = str("about.pcsx2.title"),
-                                repository = "PCSX2/pcsx2",
-                                description = str("about.pcsx2.description"),
-                                glyph = "PS2",
-                                secondary = true,
-                                controllerId = "about.pcsx2",
-                                onOpen = { uriHandler.openUri(Pcsx2RepositoryUrl) },
-                            )
-                        } else {
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                ProjectCard(
-                                    title = str("about.repository.title"),
-                                    repository = "ARMSX2/ARMSX2",
-                                    description = str("about.repository.description"),
-                                    glyph = "⌘",
-                                    modifier = Modifier.weight(1f),
-                                    controllerId = "about.repository",
-                                    onOpen = { uriHandler.openUri(RepositoryUrl) },
-                                )
-                                ProjectCard(
-                                    title = str("about.pcsx2.title"),
-                                    repository = "PCSX2/pcsx2",
-                                    description = str("about.pcsx2.description"),
-                                    glyph = "PS2",
-                                    modifier = Modifier.weight(1f),
-                                    secondary = true,
-                                    controllerId = "about.pcsx2",
-                                    onOpen = { uriHandler.openUri(Pcsx2RepositoryUrl) },
-                                )
+                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Text("Licença", fontSize = 9.sp, color = tiny,
+                                    modifier = Modifier.clickable { showLicense = true })
+                                Text("Código aberto", fontSize = 9.sp, color = tiny,
+                                    modifier = Modifier.clickable { showOpenSource = true })
+                                Text("Código-fonte", fontSize = 9.sp, color = tiny,
+                                    modifier = Modifier.clickable { uriHandler.openUri(SourceUrl) })
                             }
-                        }
-                        // ARMSX2's own license, and the open-source code it is built with: the GPL asks for
-                        // the first in the app (copyright, no warranty, where to read it), and the
-                        // libraries' licenses ask for their notices to come with it.
-                        val license: @Composable (Modifier) -> Unit = { cardModifier ->
-                            ProjectCard(
-                                title = str("about.license.title"),
-                                repository = str("about.license.name"),
-                                description = ArmsCopyright + ". " + str("about.license.description"),
-                                glyph = "§",
-                                modifier = cardModifier,
-                                controllerId = "about.license",
-                                trailing = "›",
-                                onOpen = { showLicense = true },
+                            Text(
+                                listOf(
+                                    str("app.credits.music"), str("app.credits.museumMusic"),
+                                    str("app.credits.texturesMusic"), str("app.credits.sfx"),
+                                ).joinToString("  "),
+                                fontSize = 8.sp, color = tiny, lineHeight = 10.sp,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                             )
                         }
-                        val openSource: @Composable (Modifier) -> Unit = { cardModifier ->
-                            ProjectCard(
-                                title = str("about.oss.title"),
-                                repository = str("about.oss.subtitle"),
-                                description = str("about.oss.description"),
-                                glyph = "{ }",
-                                modifier = cardModifier,
-                                secondary = true,
-                                controllerId = "about.oss",
-                                trailing = "›",
-                                onOpen = { showOpenSource = true },
-                            )
-                        }
-                        if (compact) {
-                            license(Modifier)
-                            openSource(Modifier)
-                        } else {
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                license(Modifier.weight(1f))
-                                openSource(Modifier.weight(1f))
-                            }
-                        }
-                        // The library music is CC0, so no attribution is legally required — the
-                        // author asks for credit and it costs nothing to give it.
-                        Text(
-                            str("app.credits.music"),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                        )
-                        // The Icon Museum's track asks for attribution; this and MC Icon Info give it.
-                        Text(
-                            str("app.credits.museumMusic"),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                        )
-                        // The texture screen's track is The Cynic Project's too, and asks for the same credit.
-                        Text(
-                            str("app.credits.texturesMusic"),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                        )
-                        // Bundled menu sound effects — also CC0, credited voluntarily.
-                        Text(
-                            str("app.credits.sfx"),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
-                        )
                     }
                 }
             }
