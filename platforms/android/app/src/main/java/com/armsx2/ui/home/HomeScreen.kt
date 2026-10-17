@@ -777,11 +777,23 @@ fun HomeScreen(
                                     },
                                 )
                             } else {
+                                // Meu app: o jogo mais recente vira o destaque "Continuar jogando";
+                                // os demais seguem na fileira. Os indices do controle continuam
+                                // valendo: 0 = destaque, 1.. = fileira.
+                                val hero = shownRecents.first()
+                                ContinuePlayingCard(
+                                    game = hero,
+                                    selected = recentSel == 0,
+                                    onClick = { viewModel.launch(hero) },
+                                    onDetails = { menuGame = hero },
+                                )
+                                val rest = shownRecents.drop(1)
+                                if (rest.isNotEmpty()) Spacer(Modifier.height(12.dp))
                                 val recentsRowState = rememberLazyListState()
                                 LaunchedEffect(recentSel) {
-                                    if (recentSel >= 0) recentsRowState.animateScrollToItem(recentSel)
+                                    if (recentSel >= 1) recentsRowState.animateScrollToItem(recentSel - 1)
                                 }
-                                LazyRow(
+                                if (rest.isNotEmpty()) LazyRow(
                                     state = recentsRowState,
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -800,10 +812,10 @@ fun HomeScreen(
                                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                                     contentPadding = PaddingValues(horizontal = 8.dp),
                                 ) {
-                                    itemsIndexed(shownRecents, key = { _, g -> g.uri.toString() }) { index, game ->
+                                    itemsIndexed(rest, key = { _, g -> g.uri.toString() }) { index, game ->
                                         RecentGameCard(
                                             game = game,
-                                            selected = index == recentSel,
+                                            selected = index + 1 == recentSel,
                                             onClick = { viewModel.launch(game) },
                                             onDetails = { menuGame = game },
                                         )
@@ -2028,6 +2040,76 @@ private fun GameListCard(game: GameInfo, selected: Boolean, onClick: () -> Unit,
                 GameMetadata(game)
             }
             Text("▶", color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(10.dp))
+        }
+    }
+}
+
+/** Meu app: cartao "Continuar jogando" do topo da biblioteca (layout novo). */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ContinuePlayingCard(game: GameInfo, selected: Boolean, onClick: () -> Unit, onDetails: () -> Unit) {
+    val shape = RoundedCornerShape(20.dp)
+    val rev = com.armsx2.PlayTime.revision.value
+    val played = remember(game.serial, rev) {
+        com.armsx2.PlayTime.formatPlayed(com.armsx2.PlayTime.playedSeconds(game.serial))
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(MaterialTheme.colorScheme.surface)
+            .border(
+                width = if (selected) 2.dp else 1.dp,
+                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                shape = shape,
+            )
+            .combinedClickable(onClick = onClick, onLongClick = onDetails)
+            .padding(14.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        GameCover(
+            game,
+            Modifier.width(84.dp).aspectRatio(coverAspectRatio()),
+        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                "CONTINUAR JOGANDO",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 1.sp,
+            )
+            Text(
+                game.displayTitle(EnglishTitles.enabled.value),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (played.isNotEmpty()) {
+                Text(
+                    "$played jogadas",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 13.sp,
+                )
+            }
+            Spacer(Modifier.height(4.dp))
+            Surface(
+                onClick = onClick,
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.primary,
+            ) {
+                Text(
+                    "▶  Continuar",
+                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                )
+            }
         }
     }
 }
