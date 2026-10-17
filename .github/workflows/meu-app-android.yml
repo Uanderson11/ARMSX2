@@ -1,4 +1,4 @@
-# Build só do APK Android do "meu app" (sabor github), sem as versões de PC.
+# Build só do APK Android do "meu app" (sabor github), sem as versões de PC. Assinado com a chave fixa.
 name: Meu app - APK Android
 
 on:
